@@ -1,7 +1,6 @@
 import require$$0 from 'os';
 import require$$0$1 from 'crypto';
-import * as require$$1 from 'fs';
-import require$$1__default from 'fs';
+import require$$1 from 'fs';
 import * as path from 'path';
 import path__default from 'path';
 import require$$2 from 'http';
@@ -27,7 +26,7 @@ import require$$1$4 from 'url';
 import require$$3$1 from 'zlib';
 import require$$6 from 'string_decoder';
 import require$$0$9 from 'diagnostics_channel';
-import require$$2$2 from 'child_process';
+import require$$2$2, { execSync } from 'child_process';
 import require$$6$1 from 'timers';
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -224,7 +223,7 @@ function requireFileCommand () {
 	// We use any as a valid input type
 	/* eslint-disable @typescript-eslint/no-explicit-any */
 	const crypto = __importStar(require$$0$1);
-	const fs = __importStar(require$$1__default);
+	const fs = __importStar(require$$1);
 	const os = __importStar(require$$0);
 	const utils_1 = requireUtils$1();
 	function issueFileCommand(command, message) {
@@ -25202,7 +25201,7 @@ function requireSummary () {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.summary = exports.markdownSummary = exports.SUMMARY_DOCS_URL = exports.SUMMARY_ENV_VAR = void 0;
 		const os_1 = require$$0;
-		const fs_1 = require$$1__default;
+		const fs_1 = require$$1;
 		const { access, appendFile, writeFile } = fs_1.promises;
 		exports.SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY';
 		exports.SUMMARY_DOCS_URL = 'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary';
@@ -25594,7 +25593,7 @@ function requireIoUtil () {
 		var _a;
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.getCmdPath = exports.tryGetExecutablePath = exports.isRooted = exports.isDirectory = exports.exists = exports.READONLY = exports.UV_FS_O_EXLOCK = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rm = exports.rename = exports.readlink = exports.readdir = exports.open = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
-		const fs = __importStar(require$$1__default);
+		const fs = __importStar(require$$1);
 		const path = __importStar(path__default);
 		_a = fs.promises
 		// export const {open} = 'fs'
@@ -29251,17 +29250,10 @@ async function run() {
         // Get inputs
         // GitHub Actions automatically converts hyphens to underscores in input names
         // So we need to check both formats
-        let markerFile = coreExports.getInput('marker-file').trim();
-        if (!markerFile) {
-            markerFile = coreExports.getInput('marker_file').trim() || 'Taskfile.yaml';
-        }
-        let patternSuffix = coreExports.getInput('pattern-suffix').trim();
-        if (!patternSuffix) {
-            patternSuffix = coreExports.getInput('pattern_suffix').trim() || '/**';
-        }
+        const markerFile = coreExports.getInput('marker-file').trim();
+        const patternSuffix = coreExports.getInput('pattern-suffix').trim() || '/**';
         coreExports.debug(`Looking for marker file: ${markerFile}`);
         coreExports.debug(`Using pattern suffix: ${patternSuffix}`);
-        coreExports.info(`Using pattern suffix: ${patternSuffix}`);
         // Find all marker files
         const markerFiles = findMarkerFiles(process.cwd(), markerFile);
         coreExports.debug(`Found ${markerFiles.length} marker files`);
@@ -29278,37 +29270,30 @@ async function run() {
     }
 }
 /**
- * Recursively finds all marker files in the repository.
+ * Finds all marker files in the repository using git ls-files.
  *
  * @param rootDir The root directory to start searching from
  * @param markerFile The name of the marker file to look for
  * @returns Array of paths to marker files
  */
 function findMarkerFiles(rootDir, markerFile) {
-    const results = [];
-    // Skip node_modules and .git directories
-    if (rootDir.includes('node_modules') || rootDir.includes('.git')) {
-        return results;
-    }
     try {
-        const files = require$$1.readdirSync(rootDir);
-        for (const file of files) {
-            const filePath = path.join(rootDir, file);
-            const stat = require$$1.statSync(filePath);
-            if (stat.isDirectory()) {
-                // Recursively search subdirectories
-                results.push(...findMarkerFiles(filePath, markerFile));
-            }
-            else if (file === markerFile) {
-                // Found a marker file
-                results.push(filePath);
-            }
+        // Use git ls-files to get all files in the repository
+        const command = `git ls-files --full-name -- "*/${markerFile}"`;
+        const output = execSync(command, { cwd: rootDir }).toString().trim();
+        // If no files found, return empty array
+        if (!output) {
+            return [];
         }
+        // Split the output by newline and convert to absolute paths
+        const files = output.split('\n').map((file) => path.join(rootDir, file));
+        coreExports.debug(`Found marker files: ${files.join(', ')}`);
+        return files;
     }
     catch (error) {
-        coreExports.warning(`Error reading directory ${rootDir}: ${error}`);
+        coreExports.warning(`Error finding marker files: ${error}`);
+        return [];
     }
-    return results;
 }
 /**
  * Generates a YAML filter based on marker file locations.
