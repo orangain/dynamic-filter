@@ -23,6 +23,7 @@ describe('main.ts', () => {
       if (name === 'pattern-suffix') return '/**'
       return ''
     })
+    process.chdir('test-repo')
   })
 
   afterEach(() => {
@@ -32,12 +33,12 @@ describe('main.ts', () => {
   it('Sets the filter output with actual git command', async () => {
     await run()
 
-    const expected = `test-repo/bar:
-  - test-repo/bar/**
-test-repo/baz/child:
-  - test-repo/baz/child/**
-test-repo/foo:
-  - test-repo/foo/**
+    const expected = `bar:
+  - bar/**
+baz/child:
+  - baz/child/**
+foo:
+  - foo/**
 `
 
     // Verify the filter output was set with the expected structure

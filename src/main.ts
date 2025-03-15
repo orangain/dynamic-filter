@@ -38,15 +38,15 @@ export async function run(): Promise<void> {
 /**
  * Finds all marker files in the repository using git ls-files.
  *
- * @param rootDir The root directory to start searching from
+ * @param workingDir The root directory to start searching from
  * @param markerFile The name of the marker file to look for
  * @returns Array of paths to marker files
  */
-function findMarkerFiles(rootDir: string, markerFile: string): string[] {
+function findMarkerFiles(workingDir: string, markerFile: string): string[] {
   try {
     // Use git ls-files to get all files in the repository
-    const command = `git ls-files --full-name -- "*/${markerFile}"`
-    const output = execSync(command, { cwd: rootDir }).toString().trim()
+    const command = `git ls-files -- "*/${markerFile}"`
+    const output = execSync(command, { cwd: workingDir }).toString().trim()
 
     // If no files found, return empty array
     if (!output) {
@@ -54,7 +54,7 @@ function findMarkerFiles(rootDir: string, markerFile: string): string[] {
     }
 
     // Split the output by newline and convert to absolute paths
-    const files = output.split('\n').map((file) => path.join(rootDir, file))
+    const files = output.split('\n')
 
     core.debug(`Found marker files: ${files.join(', ')}`)
     return files
