@@ -9,8 +9,7 @@ branding:
 inputs:
   marker-file:
     description: 'The name of the marker file to look for'
-    required: false
-    default: 'Taskfile.yaml'
+    required: true
   pattern-suffix:
     description: 'The pattern to append to the directory name'
     required: false

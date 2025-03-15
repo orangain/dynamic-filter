@@ -13,19 +13,11 @@ export async function run(): Promise<void> {
     // Get inputs
     // GitHub Actions automatically converts hyphens to underscores in input names
     // So we need to check both formats
-    let markerFile = core.getInput('marker-file').trim()
-    if (!markerFile) {
-      markerFile = core.getInput('marker_file').trim() || 'Taskfile.yaml'
-    }
-
-    let patternSuffix = core.getInput('pattern-suffix').trim()
-    if (!patternSuffix) {
-      patternSuffix = core.getInput('pattern_suffix').trim() || '/**'
-    }
+    const markerFile = core.getInput('marker-file').trim()
+    const patternSuffix = core.getInput('pattern-suffix').trim() || '/**'
 
     core.debug(`Looking for marker file: ${markerFile}`)
     core.debug(`Using pattern suffix: ${patternSuffix}`)
-    core.info(`Using pattern suffix: ${patternSuffix}`)
 
     // Find all marker files
     const markerFiles = findMarkerFiles(process.cwd(), markerFile)
