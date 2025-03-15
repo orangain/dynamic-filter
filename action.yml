@@ -1,23 +1,24 @@
-name: The name of your action here
-description: Provide a description here
-author: Your name or organization here
+name: Dynamic Path Filter Generator
+description: Generates YAML filters for dorny/paths-filter based on marker files
+author: Your name
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: heart
-  color: red
+  icon: filter
+  color: blue
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: Your input description here
-    required: true
-    default: '1000'
+  marker-file:
+    description: 'The name of the marker file to look for'
+    required: false
+    default: 'Taskfile.yaml'
+  pattern-suffix:
+    description: 'The pattern to append to the directory name'
+    required: false
+    default: '/**'
 
-# Define your outputs here.
 outputs:
-  time:
-    description: Your output description here
+  filter:
+    description: 'The generated YAML filter string'
 
 runs:
   using: node20
