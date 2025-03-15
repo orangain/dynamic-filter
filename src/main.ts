@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
-import * as fs from 'fs'
 import * as path from 'path'
 import * as yaml from 'js-yaml'
+import { execSync } from 'child_process'
 
 /**
  * The main function for the action.
@@ -44,40 +44,32 @@ export async function run(): Promise<void> {
 }
 
 /**
- * Recursively finds all marker files in the repository.
+ * Finds all marker files in the repository using git ls-files.
  *
  * @param rootDir The root directory to start searching from
  * @param markerFile The name of the marker file to look for
  * @returns Array of paths to marker files
  */
 function findMarkerFiles(rootDir: string, markerFile: string): string[] {
-  const results: string[] = []
-
-  // Skip node_modules and .git directories
-  if (rootDir.includes('node_modules') || rootDir.includes('.git')) {
-    return results
-  }
-
   try {
-    const files = fs.readdirSync(rootDir)
+    // Use git ls-files to get all files in the repository
+    const command = `git ls-files --full-name -- "*/${markerFile}"`
+    const output = execSync(command, { cwd: rootDir }).toString().trim()
 
-    for (const file of files) {
-      const filePath = path.join(rootDir, file)
-      const stat = fs.statSync(filePath)
-
-      if (stat.isDirectory()) {
-        // Recursively search subdirectories
-        results.push(...findMarkerFiles(filePath, markerFile))
-      } else if (file === markerFile) {
-        // Found a marker file
-        results.push(filePath)
-      }
+    // If no files found, return empty array
+    if (!output) {
+      return []
     }
-  } catch (error) {
-    core.warning(`Error reading directory ${rootDir}: ${error}`)
-  }
 
-  return results
+    // Split the output by newline and convert to absolute paths
+    const files = output.split('\n').map((file) => path.join(rootDir, file))
+
+    core.debug(`Found marker files: ${files.join(', ')}`)
+    return files
+  } catch (error) {
+    core.warning(`Error finding marker files: ${error}`)
+    return []
+  }
 }
 
 /**
