@@ -7,6 +7,9 @@ branding:
   color: blue
 
 inputs:
+  pattern:
+    description: 'Glob pattern that matches directory'
+    required: true
   marker-file:
     description: 'The name of the marker file to look for'
     required: true

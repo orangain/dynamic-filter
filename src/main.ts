@@ -1,7 +1,8 @@
 import * as core from '@actions/core'
 import * as path from 'path'
 import * as yaml from 'js-yaml'
-import { execSync } from 'child_process'
+import { glob } from 'glob'
+import { existsSync } from 'node:fs'
 
 /**
  * The main function for the action.
@@ -13,18 +14,24 @@ export async function run(): Promise<void> {
     // Get inputs
     // GitHub Actions automatically converts hyphens to underscores in input names
     // So we need to check both formats
+    const pattern = core.getInput('pattern').trim()
     const markerFile = core.getInput('marker-file').trim()
     const patternSuffix = core.getInput('pattern-suffix').trim() || '/**'
 
+    core.debug(`Looking for pattern: ${pattern}`)
     core.debug(`Looking for marker file: ${markerFile}`)
     core.debug(`Using pattern suffix: ${patternSuffix}`)
 
-    // Find all marker files
-    const markerFiles = findMarkerFiles(process.cwd(), markerFile)
-    core.debug(`Found ${markerFiles.length} marker files`)
+    // Find target directories
+    const directories = await findDirectories(
+      process.cwd(),
+      pattern,
+      markerFile
+    )
+    core.debug(`Found ${directories.length} directories`)
 
     // Generate filter
-    const filter = generateFilter(markerFiles, patternSuffix)
+    const filter = generateFilter(directories, patternSuffix)
     core.debug(`Generated filter: ${filter}`)
 
     // Set output
@@ -35,33 +42,19 @@ export async function run(): Promise<void> {
   }
 }
 
-/**
- * Finds all marker files in the repository using git ls-files.
- *
- * @param workingDir The root directory to start searching from
- * @param markerFile The name of the marker file to look for
- * @returns Array of paths to marker files
- */
-function findMarkerFiles(workingDir: string, markerFile: string): string[] {
-  try {
-    // Use git ls-files to get all files in the repository
-    const command = `git ls-files -- "*/${markerFile}"`
-    const output = execSync(command, { cwd: workingDir }).toString().trim()
-
-    // If no files found, return empty array
-    if (!output) {
-      return []
-    }
-
-    // Split the output by newline and convert to absolute paths
-    const files = output.split('\n')
-
-    core.debug(`Found marker files: ${files.join(', ')}`)
-    return files
-  } catch (error) {
-    core.warning(`Error finding marker files: ${error}`)
-    return []
+async function findDirectories(
+  workingDir: string,
+  pattern: string,
+  markerFile: string
+): Promise<string[]> {
+  function isTarget(directory: string): boolean {
+    if (markerFile === '') return true
+    return existsSync(path.join(workingDir, directory, markerFile))
   }
+
+  const dirs = (await glob(pattern, { cwd: workingDir })).filter(isTarget)
+  dirs.sort()
+  return dirs
 }
 
 /**
@@ -71,18 +64,15 @@ function findMarkerFiles(workingDir: string, markerFile: string): string[] {
  * @param patternSuffix The pattern to append to the directory name
  * @returns YAML filter string
  */
-function generateFilter(markerFiles: string[], patternSuffix: string): string {
+function generateFilter(directories: string[], patternSuffix: string): string {
   const filterObj: Record<string, string[]> = {}
 
-  for (const file of markerFiles) {
-    // Get the directory containing the marker file
-    const dirPath = path.dirname(file)
-
+  for (const directory of directories) {
     // Skip if it's the root directory
-    if (dirPath === '.' || dirPath === process.cwd()) continue
+    if (directory === '.' || directory === process.cwd()) continue
 
     // Get the relative path from the current working directory
-    const relativeDirPath = path.relative(process.cwd(), dirPath)
+    const relativeDirPath = path.relative(process.cwd(), directory)
 
     // Use the directory name as the key
     const key = relativeDirPath

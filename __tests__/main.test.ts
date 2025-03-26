@@ -19,6 +19,7 @@ describe('main.ts', () => {
   beforeEach(() => {
     // Set the action's inputs as return values from core.getInput().
     core.getInput.mockImplementation((name) => {
+      if (name === 'pattern') return '**'
       if (name === 'marker-file') return 'CustomMarker.yaml'
       if (name === 'pattern-suffix') return '/**'
       return ''
@@ -30,7 +31,7 @@ describe('main.ts', () => {
     jest.resetAllMocks()
   })
 
-  it('Sets the filter output with actual git command', async () => {
+  it('Sets the filter output', async () => {
     await run()
 
     const expected = `bar:
