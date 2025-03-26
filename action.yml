@@ -13,10 +13,12 @@ inputs:
   if-exists:
     description: 'The marker file that must exist in the directory. If not provided, all directories matching the pattern will be included.'
     required: false
-  pattern-suffix:
-    description: 'The pattern to append to the directory name'
+  template:
+    description: 'The template for the filter string. Use {dir} to insert the path of the directory.'
     required: false
-    default: '/**'
+    default: |
+      {dir}:
+      - {dir}/**
 
 outputs:
   filter:

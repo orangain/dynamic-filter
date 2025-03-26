@@ -21,7 +21,6 @@ describe('main.ts', () => {
     core.getInput.mockImplementation((name) => {
       if (name === 'pattern') return '**'
       if (name === 'if-exists') return 'CustomMarker.yaml'
-      if (name === 'pattern-suffix') return '/**'
       return ''
     })
     process.chdir('test-repo')
@@ -35,11 +34,11 @@ describe('main.ts', () => {
     await run()
 
     const expected = `bar:
-  - bar/**
+- bar/**
 baz/child:
-  - baz/child/**
+- baz/child/**
 foo:
-  - foo/**
+- foo/**
 `
 
     // Verify the filter output was set with the expected structure

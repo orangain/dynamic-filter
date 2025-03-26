@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import * as yaml from 'js-yaml'
 import { glob } from 'glob'
 import { existsSync } from 'node:fs'
 
@@ -16,11 +15,14 @@ export async function run(): Promise<void> {
     // So we need to check both formats
     const pattern = ensureDirectoryPattern(core.getInput('pattern'))
     const markerFile = core.getInput('if-exists')
-    const patternSuffix = core.getInput('pattern-suffix').trim() || '/**'
+    const template =
+      core.getInput('template') ||
+      `{dir}:
+- {dir}/**`
 
     core.debug(`Looking for pattern: ${pattern}`)
     core.debug(`Looking for marker file: ${markerFile}`)
-    core.debug(`Using pattern suffix: ${patternSuffix}`)
+    core.debug(`Using template: ${template}`)
 
     // Find target directories
     const directories = await findDirectories(
@@ -31,7 +33,7 @@ export async function run(): Promise<void> {
     core.debug(`Found ${directories.length} directories`)
 
     // Generate filter
-    const filter = generateFilter(directories, patternSuffix)
+    const filter = generateFilter(directories, template)
     core.debug(`Generated filter: ${filter}`)
 
     // Set output
@@ -66,26 +68,17 @@ async function findDirectories(
 }
 
 /**
- * Generates a YAML filter based on marker file locations.
+ * Generates a YAML filter based on the given directories and template.
  *
- * @param markerFiles Array of paths to marker files
- * @param patternSuffix The pattern to append to the directory name
+ * @param directories Array of paths to directories
+ * @param template The template to use for each directory
  * @returns YAML filter string
  */
-function generateFilter(directories: string[], patternSuffix: string): string {
-  const filterObj: Record<string, string[]> = {}
-
-  for (const directory of directories) {
-    // Get the relative path from the current working directory
-    const relativeDirPath = path.relative(process.cwd(), directory)
-
-    // Use the directory name as the key
-    const key = relativeDirPath
-
-    // Set the filter value
-    filterObj[key] = [`${relativeDirPath}${patternSuffix}`]
-  }
-
-  // Convert to YAML
-  return yaml.dump(filterObj)
+function generateFilter(directories: string[], template: string): string {
+  return directories
+    .map((directory) => {
+      const relativeDirPath = path.relative(process.cwd(), directory)
+      return template.replaceAll('{dir}', relativeDirPath) + '\n'
+    })
+    .join('')
 }
