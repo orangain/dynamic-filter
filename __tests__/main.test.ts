@@ -43,6 +43,36 @@ apps/foo:
 `
     },
     {
+      name: 'Simple pattern with trailing slash',
+      input: {
+        pattern: ['apps/*/']
+      },
+      expected: `
+apps/bar:
+- apps/bar/**
+apps/baz:
+- apps/baz/**
+apps/foo:
+- apps/foo/**
+`
+    },
+    {
+      name: 'Multiple patterns',
+      input: {
+        pattern: ['apps/*', 'services/*']
+      },
+      expected: `
+apps/bar:
+- apps/bar/**
+apps/baz:
+- apps/baz/**
+apps/foo:
+- apps/foo/**
+services/auth:
+- services/auth/**
+`
+    },
+    {
       name: 'Filter with marker file',
       input: {
         pattern: ['**'],
@@ -53,6 +83,23 @@ apps/baz/child:
 - apps/baz/child/**
 apps/foo:
 - apps/foo/**
+`
+    },
+    {
+      name: 'Custom template',
+      input: {
+        pattern: ['*'],
+        template: `{dir}:
+- {dir}/**
+- .github/workflows/ci.yml`
+      },
+      expected: `
+apps:
+- apps/**
+- .github/workflows/ci.yml
+services:
+- services/**
+- .github/workflows/ci.yml
 `
     }
   ])('Sets the filter output ($name)', async ({ input, expected }) => {
