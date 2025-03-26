@@ -14,7 +14,7 @@ export async function run(): Promise<void> {
     // Get inputs
     // GitHub Actions automatically converts hyphens to underscores in input names
     // So we need to check both formats
-    const pattern = core.getInput('pattern').trim()
+    const pattern = ensureDirectoryPattern(core.getInput('pattern'))
     const markerFile = core.getInput('marker-file').trim()
     const patternSuffix = core.getInput('pattern-suffix').trim() || '/**'
 
@@ -42,12 +42,20 @@ export async function run(): Promise<void> {
   }
 }
 
+function ensureDirectoryPattern(pattern: string) {
+  if (pattern.endsWith('/')) {
+    return pattern
+  }
+  return `${pattern}/`
+}
+
 async function findDirectories(
   workingDir: string,
   pattern: string,
   markerFile: string
 ): Promise<string[]> {
   function isTarget(directory: string): boolean {
+    if (directory === '.' || directory === process.cwd()) return false
     if (markerFile === '') return true
     return existsSync(path.join(workingDir, directory, markerFile))
   }
@@ -68,9 +76,6 @@ function generateFilter(directories: string[], patternSuffix: string): string {
   const filterObj: Record<string, string[]> = {}
 
   for (const directory of directories) {
-    // Skip if it's the root directory
-    if (directory === '.' || directory === process.cwd()) continue
-
     // Get the relative path from the current working directory
     const relativeDirPath = path.relative(process.cwd(), directory)
 

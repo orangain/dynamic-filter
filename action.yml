@@ -8,7 +8,7 @@ branding:
 
 inputs:
   pattern:
-    description: 'Glob pattern that matches directory'
+    description: 'Glob pattern that matches directory. If the pattern does not end with a slash, it will be appended automatically.'
     required: true
   marker-file:
     description: 'The name of the marker file to look for'
