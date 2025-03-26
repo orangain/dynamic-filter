@@ -24,22 +24,23 @@ describe('main.ts', () => {
     jest.resetAllMocks()
   })
 
-  it('Sets the filter output', async () => {
-    setupMockInput({
-      pattern: ['**'],
-      'if-exists': 'CustomMarker.yaml'
-    })
-
-    await run()
-
-    const expected = `bar:
+  test.each([
+    {
+      input: {
+        pattern: ['**'],
+        'if-exists': 'CustomMarker.yaml'
+      },
+      expected: `bar:
 - bar/**
 baz/child:
 - baz/child/**
 foo:
 - foo/**
 `
-
+    }
+  ])('Sets the filter output', async ({ input, expected }) => {
+    setupMockInput(input)
+    await run()
     // Verify the filter output was set with the expected structure
     expect(core.setOutput).toHaveBeenCalledWith('filter', expected)
   })
