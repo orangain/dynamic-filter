@@ -30,7 +30,8 @@ describe('main.ts', () => {
         pattern: ['**'],
         'if-exists': 'Taskfile.yaml'
       },
-      expected: `apps/baz/child:
+      expected: `
+apps/baz/child:
 - apps/baz/child/**
 apps/foo:
 - apps/foo/**
@@ -40,7 +41,7 @@ apps/foo:
     setupMockInput(input)
     await run()
     // Verify the filter output was set with the expected structure
-    expect(core.setOutput).toHaveBeenCalledWith('filter', expected)
+    expect(core.setOutput).toHaveBeenCalledWith('filter', expected.trimStart())
   })
 })
 
