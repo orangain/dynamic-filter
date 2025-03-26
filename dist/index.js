@@ -35175,16 +35175,17 @@ glob.glob = glob;
 async function run() {
     try {
         // Get inputs
-        const pattern = ensureDirectoryPattern(coreExports.getInput('pattern'));
+        const patterns = coreExports.getMultilineInput('pattern')
+            .map(ensureDirectoryPattern);
         const markerFile = coreExports.getInput('if-exists');
         const template = coreExports.getInput('template') ||
             `{dir}:
 - {dir}/**`;
-        coreExports.debug(`Looking for directories by pattern: ${pattern}`);
+        coreExports.debug(`Looking for directories by pattern: ${patterns.join(', ')}`);
         coreExports.debug(`Marker file: ${markerFile}`);
         coreExports.debug(`Template: ${template}`);
         // Find target directories
-        const directories = await findDirectories(process.cwd(), pattern, markerFile);
+        const directories = await findDirectories(process.cwd(), patterns, markerFile);
         coreExports.debug(`Found ${directories.length} directories`);
         // Generate filter
         const filter = generateFilter(directories, template);
@@ -35204,7 +35205,7 @@ function ensureDirectoryPattern(pattern) {
     }
     return `${pattern}/`;
 }
-async function findDirectories(workingDir, pattern, markerFile) {
+async function findDirectories(workingDir, patterns, markerFile) {
     function isTarget(directory) {
         if (directory === '.' || directory === process.cwd())
             return false;
@@ -35212,7 +35213,7 @@ async function findDirectories(workingDir, pattern, markerFile) {
             return true;
         return existsSync(require$$1.join(workingDir, directory, markerFile));
     }
-    const dirs = (await glob(pattern, { cwd: workingDir })).filter(isTarget);
+    const dirs = (await glob(patterns, { cwd: workingDir })).filter(isTarget);
     dirs.sort();
     return dirs;
 }
