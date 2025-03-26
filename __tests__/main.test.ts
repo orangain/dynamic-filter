@@ -19,9 +19,12 @@ describe('main.ts', () => {
   beforeEach(() => {
     // Set the action's inputs as return values from core.getInput().
     core.getInput.mockImplementation((name) => {
-      if (name === 'pattern') return '**'
       if (name === 'if-exists') return 'CustomMarker.yaml'
       return ''
+    })
+    core.getMultilineInput.mockImplementation((name) => {
+      if (name === 'pattern') return ['**']
+      return []
     })
     process.chdir('test-repo')
   })

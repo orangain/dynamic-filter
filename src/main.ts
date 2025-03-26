@@ -11,21 +11,23 @@ import { existsSync } from 'node:fs'
 export async function run(): Promise<void> {
   try {
     // Get inputs
-    const pattern = ensureDirectoryPattern(core.getInput('pattern'))
+    const patterns = core
+      .getMultilineInput('pattern')
+      .map(ensureDirectoryPattern)
     const markerFile = core.getInput('if-exists')
     const template =
       core.getInput('template') ||
       `{dir}:
 - {dir}/**`
 
-    core.debug(`Looking for directories by pattern: ${pattern}`)
+    core.debug(`Looking for directories by pattern: ${patterns.join(', ')}`)
     core.debug(`Marker file: ${markerFile}`)
     core.debug(`Template: ${template}`)
 
     // Find target directories
     const directories = await findDirectories(
       process.cwd(),
-      pattern,
+      patterns,
       markerFile
     )
     core.debug(`Found ${directories.length} directories`)
@@ -51,7 +53,7 @@ function ensureDirectoryPattern(pattern: string) {
 
 async function findDirectories(
   workingDir: string,
-  pattern: string,
+  patterns: string[],
   markerFile: string
 ): Promise<string[]> {
   function isTarget(directory: string): boolean {
@@ -60,7 +62,7 @@ async function findDirectories(
     return existsSync(path.join(workingDir, directory, markerFile))
   }
 
-  const dirs = (await glob(pattern, { cwd: workingDir })).filter(isTarget)
+  const dirs = (await glob(patterns, { cwd: workingDir })).filter(isTarget)
   dirs.sort()
   return dirs
 }
