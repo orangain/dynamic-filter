@@ -20,9 +20,9 @@ export async function run(): Promise<void> {
       `{dir}:
 - {dir}/**`
 
-    core.debug(`Looking for pattern: ${pattern}`)
-    core.debug(`Looking for marker file: ${markerFile}`)
-    core.debug(`Using template: ${template}`)
+    core.debug(`Looking for directories by pattern: ${pattern}`)
+    core.debug(`Marker file: ${markerFile}`)
+    core.debug(`Template: ${template}`)
 
     // Find target directories
     const directories = await findDirectories(
