@@ -17,15 +17,6 @@ const { run } = await import('../src/main.js')
 
 describe('main.ts', () => {
   beforeEach(() => {
-    // Set the action's inputs as return values from core.getInput().
-    core.getInput.mockImplementation((name) => {
-      if (name === 'if-exists') return 'CustomMarker.yaml'
-      return ''
-    })
-    core.getMultilineInput.mockImplementation((name) => {
-      if (name === 'pattern') return ['**']
-      return []
-    })
     process.chdir('test-repo')
   })
 
@@ -34,6 +25,11 @@ describe('main.ts', () => {
   })
 
   it('Sets the filter output', async () => {
+    setupMockInput({
+      pattern: ['**'],
+      'if-exists': 'CustomMarker.yaml'
+    })
+
     await run()
 
     const expected = `bar:
@@ -48,3 +44,21 @@ foo:
     expect(core.setOutput).toHaveBeenCalledWith('filter', expected)
   })
 })
+
+type Input = {
+  pattern: string[]
+  'if-exists'?: string
+  template?: string
+}
+
+function setupMockInput(input: Input) {
+  core.getMultilineInput.mockImplementation((name) => {
+    if (name === 'pattern') return input.pattern
+    return []
+  })
+  core.getInput.mockImplementation((name) => {
+    if (name === 'if-exists') return input['if-exists'] || ''
+    if (name === 'template') return input.template || ''
+    return ''
+  })
+}
