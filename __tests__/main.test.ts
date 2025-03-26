@@ -7,6 +7,7 @@
  */
 import { jest } from '@jest/globals'
 import * as core from '../__fixtures__/core.js'
+import { join } from 'node:path'
 
 // Mocks should be declared before the module being tested is imported.
 jest.unstable_mockModule('@actions/core', () => core)
@@ -16,8 +17,10 @@ jest.unstable_mockModule('@actions/core', () => core)
 const { run } = await import('../src/main.js')
 
 describe('main.ts', () => {
+  const workingDir = process.cwd()
+
   beforeEach(() => {
-    process.chdir('test-repo')
+    process.chdir(join(workingDir, 'test-repo'))
   })
 
   afterEach(() => {
@@ -26,6 +29,21 @@ describe('main.ts', () => {
 
   test.each([
     {
+      name: 'Simple pattern',
+      input: {
+        pattern: ['apps/*']
+      },
+      expected: `
+apps/bar:
+- apps/bar/**
+apps/baz:
+- apps/baz/**
+apps/foo:
+- apps/foo/**
+`
+    },
+    {
+      name: 'Filter with marker file',
       input: {
         pattern: ['**'],
         'if-exists': 'Taskfile.yaml'
@@ -37,7 +55,7 @@ apps/foo:
 - apps/foo/**
 `
     }
-  ])('Sets the filter output', async ({ input, expected }) => {
+  ])('Sets the filter output ($name)', async ({ input, expected }) => {
     setupMockInput(input)
     await run()
     // Verify the filter output was set with the expected structure
