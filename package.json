@@ -39,6 +39,7 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@types/js-yaml": "^4.0.9",
+    "glob": "^11.0.1",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
