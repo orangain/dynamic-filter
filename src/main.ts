@@ -15,7 +15,7 @@ export async function run(): Promise<void> {
     // GitHub Actions automatically converts hyphens to underscores in input names
     // So we need to check both formats
     const pattern = ensureDirectoryPattern(core.getInput('pattern'))
-    const markerFile = core.getInput('marker-file').trim()
+    const markerFile = core.getInput('if-exists')
     const patternSuffix = core.getInput('pattern-suffix').trim() || '/**'
 
     core.debug(`Looking for pattern: ${pattern}`)

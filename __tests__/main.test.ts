@@ -20,7 +20,7 @@ describe('main.ts', () => {
     // Set the action's inputs as return values from core.getInput().
     core.getInput.mockImplementation((name) => {
       if (name === 'pattern') return '**'
-      if (name === 'marker-file') return 'CustomMarker.yaml'
+      if (name === 'if-exists') return 'CustomMarker.yaml'
       if (name === 'pattern-suffix') return '/**'
       return ''
     })

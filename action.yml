@@ -10,9 +10,9 @@ inputs:
   pattern:
     description: 'Glob pattern that matches directory. If the pattern does not end with a slash, it will be appended automatically.'
     required: true
-  marker-file:
-    description: 'The name of the marker file to look for'
-    required: true
+  if-exists:
+    description: 'The marker file that must exist in the directory. If not provided, all directories matching the pattern will be included.'
+    required: false
   pattern-suffix:
     description: 'The pattern to append to the directory name'
     required: false
