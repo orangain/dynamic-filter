@@ -11,8 +11,6 @@ import { existsSync } from 'node:fs'
 export async function run(): Promise<void> {
   try {
     // Get inputs
-    // GitHub Actions automatically converts hyphens to underscores in input names
-    // So we need to check both formats
     const pattern = ensureDirectoryPattern(core.getInput('pattern'))
     const markerFile = core.getInput('if-exists')
     const template =
