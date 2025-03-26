@@ -28,14 +28,12 @@ describe('main.ts', () => {
     {
       input: {
         pattern: ['**'],
-        'if-exists': 'CustomMarker.yaml'
+        'if-exists': 'Taskfile.yaml'
       },
-      expected: `bar:
-- bar/**
-baz/child:
-- baz/child/**
-foo:
-- foo/**
+      expected: `apps/baz/child:
+- apps/baz/child/**
+apps/foo:
+- apps/foo/**
 `
     }
   ])('Sets the filter output', async ({ input, expected }) => {
